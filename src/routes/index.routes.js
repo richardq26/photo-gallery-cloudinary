@@ -10,20 +10,22 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-router.get("/", (req, res) => {
-  res.render("images");
+router.get("/", async(req, res) => {
+  const photos = await Photo.find().lean();
+  res.render('images',{photos});
 });
 
-router.get("/images/add", (req, res) => {
+router.get("/images/add", async(req, res) => {
+  const photos = await Photo.find().lean();
   // No es necesario darle la direccion de views ya que
   // en express definimos donde estaría la carpeta views
   // al usar render busca directamente la carpeta views
-  res.render("image_form");
+  res.render("image_form",{photos});
 });
 
 router.post("/images/add", async (req, res) => {
   const result = await cloudinary.v2.uploader.upload(req.file.path);
-  console.log(result);
+  console.log(req.file.path)
   const newPhoto = new Photo({
     title: req.body.title,
     description: req.body.description,
@@ -31,8 +33,17 @@ router.post("/images/add", async (req, res) => {
     public_id: result.public_id,
   });
   await newPhoto.save();
-  res.send('Recibido');
+  await fs.unlink(req.file.path);
+  res.redirect('/');
 });
 
-router.post;
+router.get("/images/delete/:photo_id", async(req,res)=>{
+  const{ photo_id } = req.params;
+  
+  const photo = await Photo.findByIdAndDelete(photo_id);
+  console.log("FOTO: " + photo);
+  const result= await cloudinary.v2.uploader.destroy(photo.public_id);
+  res.redirect('/images/add');
+})
+
 module.exports = router;

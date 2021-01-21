@@ -3,9 +3,11 @@ const morgan = require('morgan');
 const multer = require('multer');
 const path = require('path') ;
 const exphbs= require('express-handlebars');
+
 // Inicializaciones
 const app = express();
 require('./database');
+
 // SETTINGS
 app.set('port', process.env.PORT || 3000);
 app.set('views', path.join(__dirname, 'views'));
